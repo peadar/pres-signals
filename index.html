@@ -26,6 +26,7 @@
 
                 <section>
                    <h2>Concepts</h2>
+                   <hr>
 
                    <section>
                       A simple program with a signal handler:
@@ -35,13 +36,6 @@
                       ... and what happens when we run it:
                       <pre>
                          <code class="txt" data-external="src/basic.out.html"> </code>
-                      </pre>
-                   </section>
-
-                   <section>
-                      Let's see what the stack looks like when we're in our signal handler
-                      <pre>
-                            <code class="txt" data-external="src/basic.gdb.out.html"> </code>
                       </pre>
                    </section>
 
@@ -59,28 +53,20 @@
                    </section>
 
                    <section>
-                      And the stack trace?
-                      <pre>
-                         <code class="c" data-external="src/basic-loop.gdb.out.html"> </code>
-                      </pre>
-                      So, it appears our signal handler just spontaneously runs inside our process.
-                   </section>
-
-
-
-                   <section>
                       <h3><strong>signal handlers are only ever entered on
                          exiting the kernel to re-enter usermode code.</strong></h3>
 
                       <br/>
                       <h3 class="fragment"><strong>On return to usermode, the
-                         kernel almost always checks to see if there are any
-                         pending signals</strong></h3>
+                            kernel always checks to see if there are any
+                            pending signals</strong></h3>
                    </section>
+
                    <section>
                       <h3>When a signal is sent to an arbitrary
                       thread (eg, via kill(1)), then the target thread is in
                       one of a number of states</h3>
+                      <hr><div></div>
 
                       <dl>
                          <dt class="fragment">Running user/application code
@@ -107,14 +93,26 @@
 
                    </section>
                 </section>
-                <section>
-                   <h2>Details</h2>
-                   <section>
-                      <p style="text-align: right;" >Lets look at our stack trace a bit more carefully...</p>
-                      <pre>
-                         <code class="c" data-external="src/basic-sigframe.gdb.out.html"> </code>
-                      </pre>
 
+                <section>
+                   <div>
+                      <h2>Details</h2>
+                      <hr>
+                   </div>
+                   <section>
+                      <p style="text-align: right;" >Lets look at our stack
+                      trace a bit more carefully...</p>
+                      <pre>
+                         <code class="c" data-external="src/basic-sigframe.gdb.out.html">
+                         </code>
+                      </pre>
+                      <ul>
+                         <li class="fragment">Where did __restore_rt come from??</li>
+                         <li class="fragment">It's the start of a function, so it didn't call
+                            our signal handler...</li>
+                         <li class="fragment">What's that system call it's running??</li>
+                      </ul>
+                   </section>
                 </section>
 
                 <section>

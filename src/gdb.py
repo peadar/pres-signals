@@ -2,7 +2,7 @@ import pexpect
 import sys
 class Gdb(object):
     def __init__(self, executable):
-        self.child =pexpect.spawn("env TERM=dumb /bin/gdb -q %s" % executable, encoding="utf-8")
+        self.child =pexpect.spawn("env TERM=dumb /bin/gdb -q %s" % executable, encoding="utf-8", echo=False)
         self.child.logfile = sys.stdout
         self.child.expect("(gdb)")
 

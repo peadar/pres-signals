@@ -1,0 +1,11 @@
+
+.reveal .slides {
+    text-align: left;
+}
+.reveal pre code {
+    max-height: 36em;
+    font-size:18pt;
+    line-height: 1.2em;
+}
+
+
