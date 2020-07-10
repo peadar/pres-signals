@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Ins and outs of signal sandlers</title>
+        <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+        <link rel="stylesheet" href="reveal.js/dist/reveal.css">
+        <link rel="stylesheet" href="reveal.js/dist/theme/night.css">
+        <link rel="stylesheet" href="reveal.js/plugin/highlight/monokai.css">
+        <link rel="stylesheet" href="local.css">
+    </head>
+
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section>
+                    <h2>Ins and outs of signal sandlers</h2>
+                    <p>
+                    <br>
+                        <i>
+                            <br> Peter Edwards, Arista Networks.
+                            <br><a href="mailto:peadar@arista.com">peadar@arista.com</a>
+                        <br>
+                        </i>
+                    </p>
+                </section>
+
+                <section>
+                   <h2>Concepts</h2>
+
+                   <section>
+                      A simple program with a signal handler:
+                      <pre>
+                         <code class="c" data-external="src/basic.c.html"> </code>
+                      </pre>
+                      ... and what happens when we run it:
+                      <pre>
+                         <code class="txt" data-external="src/basic.out.html"> </code>
+                      </pre>
+                   </section>
+
+                   <section>
+                      Let's see what the stack looks like when we're in our signal handler
+                      <pre>
+                            <code class="txt" data-external="src/basic.gdb.out.html"> </code>
+                      </pre>
+                   </section>
+
+                   <section>
+                      In that case, our application was asleep inside a
+                      system call when the signal arrived, but we don't
+                      have to be to receive the signal..
+                      <pre>
+                         <code class="c" data-external="src/basic-loop.c.html"> </code>
+                      </pre>
+                      ... and what happens when we run it:
+                      <pre>
+                         <code class="txt" data-external="src/basic-loop.out.html"> </code>
+                      </pre>
+                   </section>
+
+                   <section>
+                      And the stack trace?
+                      <pre>
+                         <code class="c" data-external="src/basic-loop.gdb.out.html"> </code>
+                      </pre>
+                      So, it appears our signal handler just spontaneously runs inside our process.
+                   </section>
+
+
+
+                   <section>
+                      <h3><strong>signal handlers are only ever entered on
+                         exiting the kernel to re-enter usermode code.</strong></h3>
+
+                      <br/>
+                      <h3 class="fragment"><strong>On return to usermode, the
+                         kernel almost always checks to see if there are any
+                         pending signals</strong></h3>
+                   </section>
+                   <section>
+                      <h3>When a signal is sent to an arbitrary
+                      thread (eg, via kill(1)), then the target thread is in
+                      one of a number of states</h3>
+
+                      <dl>
+                         <dt class="fragment">Running user/application code
+                            (our second case above)</dt>
+                         <dd class="fragment">Sender sends inter-cpu message to
+                         cause hardware interrupt on CPU running target
+                         process, causing it to enter the kernel to handle the
+                         interrupt, and return to usermode</dd>
+
+                         <dt class="fragment">Running code in the kernel
+                         (system call, interrupt handler, etc) </dt>
+
+                         <dd class="fragment">Kernel will notice the signal on
+                             return to usermode.  </dd>
+
+                         <dt class="fragment">
+                            Not currently running on a CPU (our first case above)
+                         </dt>
+                         <dd class="fragment"> Sender will ensure the process
+                         is runnable  - eventually the scheduler (which runs in
+                         kernel mode), selects it, and returns to usermode</dd>
+                         </dd>
+                      </dl>
+
+                   </section>
+                </section>
+                <section>
+                   <h2>Details</h2>
+                   <section>
+                      <p style="text-align: right;" >Lets look at our stack trace a bit more carefully...</p>
+                      <pre>
+                         <code class="c" data-external="src/basic-sigframe.gdb.out.html"> </code>
+                      </pre>
+
+                </section>
+
+                <section>
+                    <h2>Acknowledgements</h2>
+                </section>
+
+            </div>
+        </div>
+        <script src="reveal.js/dist/reveal.js"></script>
+        <script src="reveal.js/plugin/highlight/highlight.js"></script>
+        <script src="reveal.js/plugin/notes/notes.js"></script>
+        <script src="reveal.js/plugin/zoom/zoom.js"></script>
+        <script>
+
+Reveal.initialize({
+    width: '100%',
+    height: '100%',
+    margin: 0,
+    border: 0,
+   plugins: [ RevealHighlight, RevealNotes, RevealZoom ],
+    dependencies: [
+       { src: 'external/external/external.js', condition: function() { return !!document.querySelector( '[data-external]' ); } },
+    ]});
+        </script>
+
+    </body>
+</html>
