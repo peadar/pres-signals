@@ -107,18 +107,61 @@
                       <hr>
                    </div>
                    <section>
-                      <p style="text-align: right;" >Lets look at our stack
-                      trace a bit more carefully...</p>
-                      <pre>
-                         <code class="c" data-external="src/basic-sigframe.gdb.out.html">
-                         </code>
-                      </pre>
-                      <ul>
-                         <li class="fragment">Where did __restore_rt come from??</li>
-                         <li class="fragment">It's the start of a function, so it didn't call
-                            our signal handler...</li>
-                         <li class="fragment">What's that system call it's running??</li>
-                      </ul>
+
+                      <div class="left-wide-pane">
+                          <pre>
+                             <code class="c" data-external="src/basic-sigframe.gdb.out.html">
+                             </code>
+                          </pre>
+                      </div>
+
+                      <div class="right-narrow-pane">
+                          <p>Lets look at our stack trace a bit more carefully...</p>
+                          <ul>
+                              <li class="fragment">Where did __restore_rt come from??</li>
+                              <li class="fragment">It's the start of a function, so it didn't call
+                                  our signal handler...</li>
+                              <li class="fragment">What's that syscall instruction going to do?</li>
+                              <li class="fragment"> ... <code>asm/unistd_64.h</code> says: 
+                                  <pre><code>#define __NR_rt_sigreturn 15</code></pre>
+                              </li>
+                              <li class="fragment">Something to do with our signal handler!</li>
+                          </ul>
+                      </div>
+                   </section>
+                   <section>
+                       <br>
+
+                      <div class="left-wide-pane">
+                          <pre>
+                             <code class="c" data-external="src/basic.c.html">
+                             </code>
+                             <code style="max-height:16em;" class="c"
+                                     data-external="src/basic.strace.html">
+                             </code>
+                          </pre>
+                      </div>
+
+                      <div class="right-narrow-pane">
+                          <p> Let's examine our system call returning EINTR a bit</p>
+                          <ul>
+                              <li class="fragment"> Although <code>pause</code>
+                                  <i>looked</i> like it returned -1/EINTR in
+                                  main, strace says it returned this other
+                                  errno, ERESTARTNOHAND</li>
+
+                              <li class="fragment">A different system call,
+                                  <code>rt_sigreturn</code> did
+                                  return-1/EINTR</li>
+
+                              <li class="fragment">That's the system call that
+                                  appears to be invoked by the
+                                  <code>__restore_rt</code> frame we saw on our
+                              stack when the signal handler was running</li>
+
+                          </ul>
+                      </div>
+
                    </section>
                 </section>
 

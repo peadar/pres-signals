@@ -1,6 +1,8 @@
-#include "common.h" // includes signal, unistd, stdio, errno, string, etc.
+#include "common.h" // includes signal, unistd, etc...
 static void signal_handler(int signo) {
-   printf("received signal %d ('%s'), current errno: %s\n", signo, strsignal(signo), strerror(errno));
+   printf("received signal %d ('%s'), current errno: %s\n", signo,
+           strsignal(signo), strerror(errno));
+   fflush(stdout);
 }
 int main() {
    signal(SIGALRM, signal_handler);

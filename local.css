@@ -10,6 +10,24 @@
     background-color: red;
 }
 
+div.left-wide-pane {
+    float: left;
+    width: 60%;
+    margin-left: 1em;
+    margin-right: 1em;
+    text-align: left;
+}
+
+div.right-narrow-pane {
+    float: right;
+    width: 30%;
+    margin-left: 1em;
+    margin-right: 1em;
+    text-align: left;
+}
+
+
+
 
 .reveal pre code {
     max-height: 36em;
