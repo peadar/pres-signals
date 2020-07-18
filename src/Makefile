@@ -13,7 +13,8 @@ handle_signal.c.html \
 htmlfilt.c.html \
 prepare_exit_to_usermode.c.html \
 setup_rt_frame.c.html \
-syscall_return_slowpath.c.html
+syscall_return_slowpath.c.html \
+basic-showrtact.gdb.out.html
 
 all: $(TARGETS)
 

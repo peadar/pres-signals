@@ -125,7 +125,6 @@
                               <li class="fragment"> ... <code>asm/unistd_64.h</code> says: 
                                   <pre><code>#define __NR_rt_sigreturn 15</code></pre>
                               </li>
-                              <li class="fragment">Something to do with our signal handler!</li>
                           </ul>
                       </div>
                    </section>
@@ -154,13 +153,26 @@
                               <li class="fragment">A different system call,
                                   <code>rt_sigreturn (remember rt_sigreturn?)</code> did
                                   return-1/EINTR</li>
-                              <li class="fragment">Note that our signa() call
-                              did not invoke a signal sytem call - it in fact
-                              invoked rt_sigaction</li>
+                              <li class="fragment">Note that our
+                                 <code>signal()</code> call did not invoke a
+                                 "signal" system call - it in fact invoked
+                                 <code>rt_sigaction</code>. Let's look closer</li>
                           </ul>
+                      </div>
+                   </section>
+
+                   <section>
+
+                      <div class="left-wide-pane">
+                          <pre>
+                             <code style="max-height:22em;" class="c"
+                                    data-external="src/basic-showrtact.gdb.out.html">
+                             </code>
+                          </pre>
                       </div>
 
                    </section>
+
                 </section>
                 <section>
                    <h2>Some Linux Kernel Spelunking</h2>
