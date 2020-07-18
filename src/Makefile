@@ -3,7 +3,17 @@
 
 CFLAGS += -g
 
-TARGETS = basic htmlfilt basic.c.html basic.out.html basic.gdb.out.html basic-loop basic-loop.out.html basic-loop.gdb.out.html basic-loop.c.html basic-sigframe.gdb.out.html basic.strace.html
+TARGETS = basic htmlfilt basic.out.html basic.gdb.out.html basic-loop basic-loop.out.html basic-loop.gdb.out.html basic-sigframe.gdb.out.html basic.strace.html  \
+basic.c.html \
+basic-loop.c.html \
+do_signal.c.html \
+do_syscall_64.c.html \
+exit_to_usermode_loop.c.html \
+handle_signal.c.html \
+htmlfilt.c.html \
+prepare_exit_to_usermode.c.html \
+setup_rt_frame.c.html \
+syscall_return_slowpath.c.html
 
 all: $(TARGETS)
 

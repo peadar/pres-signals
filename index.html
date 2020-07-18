@@ -103,7 +103,7 @@
 
                 <section>
                    <div>
-                      <h2>Details</h2>
+                      <h2>Some Experiments</h2>
                       <hr>
                    </div>
                    <section>
@@ -143,27 +143,157 @@
                       </div>
 
                       <div class="right-narrow-pane">
+                         <br>
                           <p> Let's examine our system call returning EINTR a bit</p>
                           <ul>
-                              <li class="fragment"> Although <code>pause</code>
+                              <li class="fragment"> <code>pause</code>
                                   <i>looked</i> like it returned -1/EINTR in
-                                  main, strace says it returned this other
-                                  errno, ERESTARTNOHAND</li>
+                                  main, but strace says it returned error
+                               ERESTARTNOHAND</li>
 
                               <li class="fragment">A different system call,
-                                  <code>rt_sigreturn</code> did
+                                  <code>rt_sigreturn (remember rt_sigreturn?)</code> did
                                   return-1/EINTR</li>
-
-                              <li class="fragment">That's the system call that
-                                  appears to be invoked by the
-                                  <code>__restore_rt</code> frame we saw on our
-                              stack when the signal handler was running</li>
-
+                              <li class="fragment">Note that our signa() call
+                              did not invoke a signal sytem call - it in fact
+                              invoked rt_sigaction</li>
                           </ul>
                       </div>
 
                    </section>
                 </section>
+                <section>
+                   <h2>Some Linux Kernel Spelunking</h2>
+
+                   <section>
+                      <h3>System call entry</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/do_syscall_64.c.html">
+                             </code>
+                         </pre>
+                      </div>
+
+                      <div class="right-narrow-pane">
+                         <p>Once the <code>syscall</code> instruction is
+                         executed, the CPU transfers control to kernel code.
+                         The low-level assembler entrypoint organises to store
+                         machine state, and calls do_syscall_64 </p>
+
+                         <p>That function uses the syscall number to look up a
+                         table, invokes the handler for the call, then returns
+                         via <code>syscall_return_slowpath</code></p>
+
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>syscall_return_slowpath</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/syscall_return_slowpath.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+                         <p>This does little - but brings us into prepare_exit_to_usermode()</p>
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>prepare_exit_to_usermode</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/prepare_exit_to_usermode.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+                         <p>... and through to <code>exit_to_usermode_loop</code>...</p>
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>exit_to_usermode_loop</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/exit_to_usermode_loop.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+                         <p>... and to do_signal (ah! signals!)</p>
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>do_signal</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/do_signal.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+
+                         <p>We finally have our check to see if we need to
+                         actually process a signal. If we have a signal
+                         handler, we want to invoke that. If not, we'll return
+                         to the call site of our system call</p>
+
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>handle_signal</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/handle_signal.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+                         <p>The magic happens here, in setup_rt_frame... </p>
+                      </div>
+                   </section>
+
+                   <section>
+                      <h3>setup_rt_frame (x86_64 64-bit syscall version)</h3>
+                      <div class="left-wide-pane">
+                         <pre>
+                             <code class="c"style="max-height:20em;"
+                                     data-external="src/setup_rt_frame.c.html">
+                             </code>
+                         </pre>
+                      </div>
+                      <div class="right-narrow-pane">
+                         <p><code>get_sigframe</code> returns a pointer to the top of the
+                         <strong>user</strong> stack. </p>
+                         <p class-"fragment">The rest of
+                         <code>setup_rt_frame</code> saves the state that we
+                         would have returned to usermode with on the user
+                         stack, and then manipulates those machine registers so
+                         execution will continue in the signal handler. See
+                         what it does with sa_restorer, sa_handler in
+                         particular</p>
+                      </div>
+                   </section>
+                </section>
+
+                <section>
+                    <h2>References</h2>
+                    <dl>
+                       <dt> Linux 64-bit kernel entrypoint</dt>
+                       <dd>https://github.com/torvalds/linux/blob/master/arch/x86/entry/entry_64.S#L56</dd>
+
+                </section>
+
 
                 <section>
                     <h2>Acknowledgements</h2>

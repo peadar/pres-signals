@@ -12,27 +12,34 @@
 
 div.left-wide-pane {
     float: left;
-    width: 60%;
+    width: 55%;
+    text-align: left;
     margin-left: 1em;
     margin-right: 1em;
-    text-align: left;
 }
 
 div.right-narrow-pane {
     float: right;
-    width: 30%;
+    width: 35%;
     margin-left: 1em;
     margin-right: 1em;
     text-align: left;
 }
-
-
 
 
 .reveal pre code {
     max-height: 36em;
     font-size:18pt;
     line-height: 1.2em;
+    margin-left: 0;
+    margin-right: 0;
 }
+
+.reveal pre {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+}
+
 
 
