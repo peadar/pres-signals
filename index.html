@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>Ins and outs of signal sandlers</title>
+        <title>The ins and outs of signal handlers</title>
         <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
         <link rel="stylesheet" href="reveal.js/dist/reveal.css">
         <link rel="stylesheet" href="reveal.js/dist/theme/night.css">
@@ -13,7 +13,7 @@
         <div class="reveal">
             <div class="slides">
                 <section>
-                    <h2>Ins and outs of signal sandlers</h2>
+                    <h2>The ins and outs of signal handlers</h2>
                     <p>
                     <br>
                         <i>
@@ -40,10 +40,10 @@
                    </section>
 
                    <section>
-                      In that case, our application was asleep inside a
-                      system call when the signal arrived, but we don't
-                      have to be to receive the signal..
-                      <pre>
+                       In that case, our application was asleep inside a
+                       system call when the signal arrived, but we don't
+                       have to be to receive the signal..
+                       <pre>
                          <code class="c" data-external="src/basic-loop.c.html"> </code>
                       </pre>
                       ... and what happens when we run it:
@@ -53,13 +53,19 @@
                    </section>
 
                    <section>
-                      <h3><strong>signal handlers are only ever entered on
-                         exiting the kernel to re-enter usermode code.</strong></h3>
+                       <h3> So, when and how do we get from the normal flow of
+                           execution into a signal handler?</h3>
+                       <ul>
+                           <li class="fragment"> <strong>Signal
+                                   handlers are only ever entered on exiting
+                                   the kernel to re-enter user mode (running
+                                   your program.)</strong></li>
 
-                      <br/>
-                      <h3 class="fragment"><strong>On return to usermode, the
+                           <li class=fragment><strong>On return to user mode, the
                             kernel always checks to see if there are any
-                            pending signals</strong></h3>
+                            pending signals</strong></li>
+                       </ul>
+
                    </section>
 
                    <section>
@@ -80,7 +86,8 @@
                          (system call, interrupt handler, etc) </dt>
 
                          <dd class="fragment">Kernel will notice the signal on
-                             return to usermode.  </dd>
+                         return to usermode (or sometimes, before potentially
+                         blocking.) </dd>
 
                          <dt class="fragment">
                             Not currently running on a CPU (our first case above)

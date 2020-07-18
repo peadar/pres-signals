@@ -2,6 +2,15 @@
 .reveal .slides {
     text-align: left;
 }
+
+.reveal .slides hr {
+    color: red;
+    height: 1px;
+    border: none;
+    background-color: red;
+}
+
+
 .reveal pre code {
     max-height: 36em;
     font-size:18pt;

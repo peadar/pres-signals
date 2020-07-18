@@ -1,0 +1,7 @@
+*.out
+*.*.html
+*.pyc
+htmlfilt
+*.o
+basic
+basic-loop
