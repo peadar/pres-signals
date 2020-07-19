@@ -1,0 +1,14 @@
+Reading symbols from ./basic-loop...done.
+(gdb) break signal_handler
+Breakpoint 1 at 0x7c6: file basic-loop.c, line 4.
+(gdb) run
+Starting program: /home/peadar/public_html/signals/src/basic-loop 
+
+Breakpoint 1, signal_handler (signo=14) at basic-loop.c:4
+4	   printf(&quot;received signal %d (&apos;%s&apos;), current errno: %s\n&quot;, signo, strsignal(signo), strerror(errno));
+(gdb) where
+#0  signal_handler (signo=14) at basic-loop.c:4
+#1  &lt;signal handler called&gt;
+#2  0x000055555555482c in main () at basic-loop.c:10
+(gdb) kill
+(gdb) quit

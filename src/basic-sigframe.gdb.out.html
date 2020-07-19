@@ -1,0 +1,25 @@
+Reading symbols from ./basic...done.
+(gdb) break signal_handler
+Breakpoint 1 at 0x896: file basic.c, line 4.
+(gdb) run
+Starting program: /home/peadar/public_html/signals/src/basic 
+
+Breakpoint 1, signal_handler (signo=14) at basic.c:4
+4	           strsignal(signo), strerror(errno));
+(gdb) where
+#0  signal_handler (signo=14) at basic.c:4
+#1  &lt;signal handler called&gt;
+#2  0x00007ffff7ac8954 in __libc_pause ()
+    at ../sysdeps/unix/sysv/linux/pause.c:30
+#3  0x000055555555490c in main () at basic.c:10
+(gdb) frame 1
+#1  &lt;signal handler called&gt;
+(gdb) print $rip
+$1 = (void (*)()) 0x7ffff7a22fd0 &lt;__restore_rt&gt;
+(gdb) disas $1
+Dump of assembler code for function __restore_rt:
+=&gt; 0x00007ffff7a22fd0 &lt;+0&gt;:	mov    $0xf,%rax
+   0x00007ffff7a22fd7 &lt;+7&gt;:	syscall 
+   0x00007ffff7a22fd9 &lt;+9&gt;:	nopl   0x0(%rax)
+End of assembler dump.
+(gdb) quit

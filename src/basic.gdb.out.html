@@ -1,0 +1,16 @@
+Reading symbols from ./basic...done.
+(gdb) break signal_handler
+Breakpoint 1 at 0x896: file basic.c, line 4.
+(gdb) run
+Starting program: /home/peadar/public_html/signals/src/basic 
+
+Breakpoint 1, signal_handler (signo=14) at basic.c:4
+4	           strsignal(signo), strerror(errno));
+(gdb) where
+#0  signal_handler (signo=14) at basic.c:4
+#1  &lt;signal handler called&gt;
+#2  0x00007ffff7ac8954 in __libc_pause ()
+    at ../sysdeps/unix/sysv/linux/pause.c:30
+#3  0x000055555555490c in main () at basic.c:10
+(gdb) kill
+(gdb) quit

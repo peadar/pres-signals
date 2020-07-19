@@ -1,0 +1,20 @@
+Reading symbols from ./basic...done.
+(gdb) catch syscall rt_sigaction
+Catchpoint 1 (syscall &apos;rt_sigaction&apos; [13])
+(gdb) run
+Starting program: /home/peadar/public_html/signals/src/basic 
+
+Catchpoint 1 (call to syscall rt_sigaction), 0x00007ffff7a2309d in __GI___libc_sigaction (sig=14, act=act@entry=0x7fffffffdd00, 
+    oact=oact@entry=0x7fffffffdda0)
+    at ../sysdeps/unix/sysv/linux/x86_64/sigaction.c:62
+62	../sysdeps/unix/sysv/linux/x86_64/sigaction.c: No such file or directory.
+(gdb) p *(struct kernel_sigaction *)$rsi
+$1 = {
+  k_sa_handler = 0x55555555488a &lt;signal_handler&gt;, 
+  sa_flags = 335544320, 
+  sa_restorer = 0x7ffff7a22fd0 &lt;__restore_rt&gt;, 
+  sa_mask = {
+    __val = {8192, 0 &lt;repeats 15 times&gt;}
+  }
+}
+(gdb) quit

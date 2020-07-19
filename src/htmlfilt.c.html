@@ -1,0 +1,17 @@
+#include &lt;stdio.h&gt;
+int
+main()
+{
+    int c;
+    while ((c = getc(stdin)) != EOF) {
+        switch (c) {
+            case &apos;&lt;&apos;: printf(&quot;&amp;lt;&quot;); break;
+            case &apos;&gt;&apos;: printf(&quot;&amp;gt;&quot;); break;
+            case &apos;&quot;&apos;: printf(&quot;&amp;quot;&quot;); break;
+            case &apos;&amp;&apos;: printf(&quot;&amp;amp;&quot;); break;
+            case &apos;\&apos;&apos;: printf(&quot;&amp;apos;&quot;); break;
+            default: putc(c,stdout); break;
+        }
+    }
+    return 0;
+}
