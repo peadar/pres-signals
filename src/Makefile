@@ -14,7 +14,8 @@ htmlfilt.c.html \
 prepare_exit_to_usermode.c.html \
 setup_rt_frame.c.html \
 syscall_return_slowpath.c.html \
-basic-showrtact.gdb.out.html
+basic-showrtact.gdb.out.html \
+rt_sigreturn.c.html
 
 all: $(TARGETS)
 

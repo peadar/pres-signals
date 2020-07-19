@@ -14,6 +14,7 @@
             <div class="slides">
                 <section>
                     <h2>The ins and outs of signal handlers</h2>
+                    <hr>
                     <p>
                     <br>
                         <i>
@@ -51,30 +52,29 @@
                    </section>
 
                    <section>
-                       <h3> So, when and how do we get from the normal flow of
-                           execution into a signal handler?</h3>
-                       <ul>
-                           <li class="fragment"> <strong>Signal
-                                   handlers are only ever entered on exiting
-                                   the kernel to re-enter user mode (running
-                                   your program.)</strong></li>
-
-                           <li class=fragment><strong>On return to user mode, the
-                            kernel always checks to see if there are any
-                            pending signals</strong></li>
-                       </ul>
-
-                   </section>
-
-                   <section>
-                      <h3>When a signal is sent to an arbitrary
-                      thread (eg, via kill(1)), then the target thread is in
-                      one of a number of states</h3>
+                      <p>Signals are raised when...</p>
+                      <ul>
+                         <li class="fragment">...some other process explicitly kill()s you (or similar)</li>
+                         <li class="fragment">...an asynchronous event (such as a timer going off) occurs</li>
+                         <li class="fragment">...a synchronous event in a thread causes a trap (eg, segfault, int3, etc)</li>
+                      </ul>
                       <br>
 
+                      <p class="fragment">In each case, the thread in
+                      the kernel that raises the signal will mark it as
+                      pending in the receiving thread. That will be in
+                      one of a number of states...</p>
+
                       <dl>
+                         <dt class="fragment">
+                            Not currently running on a CPU (our stopped-in-pause() example)
+                         </dt>
+                         <dd class="fragment"> Sender will ensure the process
+                         is runnable  - eventually the scheduler (which runs in
+                         kernel mode), selects it, and returns to usermode</dd>
+                         </dd>
                          <dt class="fragment">Running user/application code
-                            (our second case above)</dt>
+                            (our "spinning in while loop" example)</dt>
                          <dd class="fragment">Sender sends inter-cpu message to
                          cause hardware interrupt on CPU running target
                          process, causing it to enter the kernel to handle the
@@ -87,15 +87,22 @@
                          return to usermode (or sometimes, before potentially
                          blocking.) </dd>
 
-                         <dt class="fragment">
-                            Not currently running on a CPU (our first case above)
-                         </dt>
-                         <dd class="fragment"> Sender will ensure the process
-                         is runnable  - eventually the scheduler (which runs in
-                         kernel mode), selects it, and returns to usermode</dd>
-                         </dd>
                       </dl>
 
+                   </section>
+
+                   <section>
+                       <h3> So, when and how do we get from the normal flow of
+                           execution into a signal handler?</h3>
+                       <ul>
+                           <li class="fragment"> <strong>Signal
+                                   handlers are only ever entered on exiting
+                                   the kernel to re-enter user mode (running
+                                   your program.)</strong></li>
+                           <li class=fragment><strong>On return to user mode, the
+                            kernel always checks to see if there are any
+                            pending signals</strong></li>
+                       </ul>
                    </section>
                 </section>
 
@@ -131,9 +138,9 @@
 
                       <div class="left-wide-pane">
                           <pre>
-                             <code class="c" data-external="src/basic.c.html">
+                             <code style="max-height:15em;" class="c" data-external="src/basic.c.html">
                              </code>
-                             <code style="max-height:16em;" class="c"
+                             <code style="max-height:12em;" class="c"
                                      data-external="src/basic.strace.html">
                              </code>
                           </pre>
@@ -143,18 +150,23 @@
                          <br>
                           <p> Let's examine our system call returning EINTR a bit</p>
                           <ul>
+
+                              <li class="fragment">Our <code>signal()</code>
+                                 call actually called
+                                 <code>rt_sigaction</code>, that's the
+                              canonical way to change the disposition of a
+                              signal handler</li>
+
                               <li class="fragment"> <code>pause</code>
-                                  <i>looked</i> like it returned -1/EINTR in
-                                  main, but strace says it returned error
-                               ERESTARTNOHAND</li>
+                                 <i>looked</i> like it returned -1/EINTR in
+                                 main, but strace says it returned error
+                              ERESTARTNOHAND</li>
 
                               <li class="fragment">A different system call,
-                                  <code>rt_sigreturn (remember rt_sigreturn?)</code> did
-                                  return-1/EINTR</li>
-                              <li class="fragment">Note that our
-                                 <code>signal()</code> call did not invoke a
-                                 "signal" system call - it in fact invoked
-                                 <code>rt_sigaction</code>. Let's look closer</li>
+                                 that we've just seen a reference to,
+                                 <code>rt_sigreturn</code> did
+                              return-1/EINTR</li>
+
                           </ul>
                       </div>
                    </section>
@@ -175,14 +187,16 @@
 int sigaction(int signum,
               const struct sigaction *act,
               struct sigaction *oldact);
-</code></pre> There used to be a sigaction syscall, but now sigaction calls the new rt_sigaction call. It's descriptor arguments are similar, but are of type <code>struct kernel_sigaction</code>. Here's what our <code>signal()</code> function eventually passed to the kernel</p>
+</code></pre></p>
+                         <p class="fragment"> ... and now we see the source of
+                         __restore_rt - our libc passed it to the kernel
+                         when we registered the handler.</p>
                       </div>
-
                    </section>
-
                 </section>
                 <section>
-                   <h2>Some Linux Kernel Spelunking</h2>
+                   <h2>Some Linux Source Spelunking</h2>
+                    <hr>
 
                    <section>
                       <h3>System call entry - <a href=https://github.com/torvalds/linux/blob/master/arch/x86/entry/common.c#L368">do_syscall_64</a></h3>
@@ -195,25 +209,23 @@ int sigaction(int signum,
                       </div>
 
                       <div class="right-narrow-pane">
-                         <p>Once the <code>syscall</code> instruction is
-                         executed, the CPU transfers control to kernel
-                         code.  The low-level assembler entrypoint
-                         organises to store machine state, and calls
-                         do_syscall_64 </p>
+                         <p>When a system call is invoked, the CPU transfers
+                         control to kernel code, where the low-level assembler
+                         entrypoint <a href="https://github.com/torvalds/linux/blob/master/arch/x86/entry/entry_64.S#L56">entry_SYSCALL_64</a>
+                         stores machine state, and calls
+                         <code><a href=https://github.com/torvalds/linux/blob/master/arch/x86/entry/common.c#L368">do_syscall_64</a></code> </p>
 
-                         <p>That function uses the syscall number to look up a
-                         table, invokes the handler for the call, then returns
-                         via <code>syscall_return_slowpath</code></p>
+                         <p class="fragment"> the (non-const) pt_regs argument contains the registers
+                         of the usermode program </p>
 
-                         <p> Note that the pt_regs struct contains the
-                         registers of the usermode program - and they are
-                         passed, non-const, to do_syscall_64</p>
+                         <p class="fragment"> If we arrive in the kernel via an interrupt
+                         or trap, things behave similarly</p>
 
                       </div>
                    </section>
 
                    <section>
-                      <h3>syscall_return_slowpath</h3>
+                      <h3><a href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/entry/common.c#L359"><code>syscall_return_slowpath</code></a></h3>
                       <div class="left-wide-pane">
                          <pre>
                              <code class="c"style="max-height:20em;"
@@ -227,7 +239,7 @@ int sigaction(int signum,
                    </section>
 
                    <section>
-                      <h3>prepare_exit_to_usermode</h3>
+                      <h3><a href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/entry/common.c#L256"><code>prepare_exit_to_usermode</code></a></h3>
                       <div class="left-wide-pane">
                          <pre>
                              <code class="c"style="max-height:20em;"
@@ -236,7 +248,21 @@ int sigaction(int signum,
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>... and through to <code>exit_to_usermode_loop</code>...</p>
+
+                         <p class="fragment">We're looking
+                         at the exit path for system calls
+                         here, but interrupts are similar
+
+                         - On x86, "IDT entries" handle interrupts, and <a
+                         href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/include/asm/idtentry.h#L40"><code>DEFINE_IDTENTRY</code></a>
+
+                         is used to define
+                         an interrupt handler, and this macro calls <a
+                         href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/entry/common.c#L670"><code>idtentry_exit_cond_rcu</code></a>,
+                         which also leads to
+                         <code>prepare_exit_to_usermode</code>
+
+                         <p class="fragment">... and through to <code>exit_to_usermode_loop</code>...</p>
                       </div>
                    </section>
 
@@ -250,7 +276,8 @@ int sigaction(int signum,
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>... and to do_signal (ah! signals!)</p>
+                         <p>... where we start to see some mention of signals -  <code>to do_signal</code></p>
+
                       </div>
                    </section>
 
@@ -265,10 +292,11 @@ int sigaction(int signum,
                       </div>
                       <div class="right-narrow-pane">
 
-                         <p>We finally have our check to see if we need to
-                         actually process a signal. If we have a signal
-                         handler, we want to invoke that. If not, we'll return
-                         to the call site of our system call</p>
+                         <p>We have our check to see if we need to actually
+                         process a signal. If we have a signal pending we want
+                         to handle it. If not, we'll return to where our system
+                         call was invoked (or where userland was "interrupted")
+                         of our system call</p>
 
                       </div>
                    </section>
@@ -283,17 +311,23 @@ int sigaction(int signum,
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>The magic happens here, in <code>setup_rt_frame</code>.
-                         <code>signal_setup_done</code> is where we commit to
+                         <p>We perform the evential magic by calling <code>setup_rt_frame</code>, and
+                         <code>signal_setup_done</code> will commit to
                          the fact that the kernel has now "delivered" the
-                         signal - it either removes the signal from the pending
-                         mask, or, if setup_rt_frame failed, causes the process
-                         to segfault. So lets see <code>setup_rt_frame</code></p>
+                         signal - it either removing it from the pending
+                         set, or, if setup_rt_frame failed, cause the process
+                         to segfault.</p>
+
+                         <p class"fragment">we also store EINTR
+                         in the user registers in place of the
+                         ERESTART... code</p>
+
+                         <p class="fragment">So lets see <code>setup_rt_frame</code></p>
                       </div>
                    </section>
 
                    <section>
-                      <h3>setup_rt_frame (x86_64 64-bit syscall version)</h3>
+                      <h3><a href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/entry/common.c#L359"><code>setup_rt_frame</code></a>/<a href="https://github.com/torvalds/linux/blob/f359287765c04711ff54fbd11645271d8e5ff763/arch/x86/kernel/signal.c#L438"><code>__setup_rt_frame</code></a></h3>
                       <div class="left-wide-pane">
                          <pre>
                              <code class="c"style="max-height:20em;"
@@ -305,27 +339,81 @@ int sigaction(int signum,
                          <p><code>get_sigframe</code> returns a pointer to the top of the
                          <strong>user</strong> stack. </p>
                          <p class-"fragment">The rest of
-                         <code>setup_rt_frame</code> saves the state that we
-                         would have returned to usermode with on the user
-                         stack, and then manipulates those machine registers so
-                         execution will continue in the signal handler. See
-                         what it does with sa_restorer, sa_handler in
-                         particular</p>
-                      </div>
-                   </section>
+                            <code>setup_rt_frame</code> saves the state that we
+                            would have returned to usermode with on the user
+                            stack, and then manipulates those machine registers so
+                            execution will continue in the signal handler. See
+                            what it does with sa_restorer, sa_handler in
+                            particular</p>
+                         </div>
+                      </section>
+                      <section>
+                         <p>We can now return all the way back to entry_SYSCALL_64, where we restore our now modified user_regs, and return to userland at our signal handler.</p>
+                         <p class="fragment">All the state of the user
+                         program that would have been restored if there had
+                         been no signal pending, is sitting at the top of
+                         the thread's stack.</p>
+                         <p class="fragment">When the signal handler returns, it will return to __restore_rt, where the _rt_sigreturn system call is invoked</p>
+                      </section>
+                      <section>
+                         <div class="left-wide-pane">
+                            <pre>
+                                <code class="c"style="max-height:20em;"
+                                        data-external="src/rt_sigreturn.c.html">
+                                </code>
+                            </pre>
+                         </div>
+                         <div class="right-narrow-pane">
+                            <p>This system call restores all the original
+                            registers and signal mask that setup_rt_frame left
+                            there, including the ERESTARTNOHAND error code. It
+                            will call do_signal as it returns to user mode.</p>
+                         </div>
+                      </section>
+                      <section>
+                         <div class="left-wide-pane">
+                            <pre>
+                            <code class="c"style="max-height:20em;"
+                                  data-external="src/do_signal.c.html">
+                            </code>
+                            </pre>
+                         </div>
+                         <div class="right-narrow-pane">
+                            <p>And finally, as we return to usermode
+                            once more, after restoring all the state
+                            of our original system call, we can handle
+                            ERESTARTNOHAND right back in do_signal
+                            </p>
+                         </div>
+                      </section>
+
                 </section>
 
                 <section>
-                    <h2>References</h2>
-                    <dl>
-                       <dt> Linux 64-bit kernel entrypoint</dt>
-                       <dd>https://github.com/torvalds/linux/blob/master/arch/x86/entry/entry_64.S#L56</dd>
+                    <h2>Notes, Comments, Q&A</h2>
+                    <ul>
 
-                </section>
+                       <li>The signal API has a long history. There's
+                       lots of compatibility stuff for old APIs and
+                       per-platform implementations do differ in the
+                       details (sa_restorer is a good case in point)</li>
 
+                       <li>All the <code>rt</code> suffixes and prefixes are
+                          for "realtime". POSIX introduced enhanced "realtime"
+                          signal semantics, and the system calls had to change
+                          to grow support for them. x86_64 only supports
+                          "realtime" signal calls for 64-bit apps. 32-bit apps
+                          still have both variants.</li>
 
-                <section>
-                    <h2>Acknowledgements</h2>
+                       <li>In the bad old days, the kernel would place
+                          executable code on the stack to do what
+                          ___restore_rt does</li>
+
+                       <li>If you have a problem that you think you can
+                       solve with signals, think long and hard about using
+                       signals. You will likely regret your decision</li>
+
+                    </ul>
                 </section>
 
             </div>
