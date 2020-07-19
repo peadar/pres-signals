@@ -1,0 +1,19 @@
+#define _GNU_SOURCE
+#include &quot;common.h&quot; // includes signal, unistd, etc...
+static void signal_handler(int signo, siginfo_t *si, void *v) {
+   struct ucontext_t *uc = v;
+   printf(&quot;received signal %d (&apos;%s&apos;), current errno: %s\n&quot;, signo,
+           strsignal(signo), strerror(errno));
+   fflush(stdout);
+}
+int main() {
+   struct sigaction sa;
+
+   memset(&amp;sa, 0, sizeof sa);
+   sa.sa_sigaction = signal_handler;
+   sa.sa_flags = SA_SIGINFO;
+   sigaction(SIGALRM, &amp;sa, NULL);
+   alarm(1);
+   int rc = pause();
+   printf(&quot;pause returned %d, errno is %s\n&quot;, rc, strerror(errno));
+}

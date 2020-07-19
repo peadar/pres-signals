@@ -170,7 +170,6 @@
                           </ul>
                       </div>
                    </section>
-
                    <section>
 
                       <div class="left-wide-pane">
@@ -194,6 +193,28 @@ int sigaction(int signum,
                       </div>
                    </section>
                 </section>
+
+                <section>
+                   <h3>More details in signal handlers</h3>
+
+                   <section>
+                      <p> We can get much more information passed to the signal handler by using sigaction, by using the SA_SIGINFO flag, and a different type for our signal handler callback.</p>
+                   <pre>
+                             <code style="max-height:22em;" class="c" data-external="src/full.c.html">
+                             </code>
+                   </pre>
+                   </section>
+
+                   <section>
+                      <p> ... and here's what the content looks like... </p>
+                   <pre>
+                             <code style="max-height:22em;" class="c" data-external="src/full.gdb.out.html">
+                             </code>
+                   </pre>
+                   </section>
+
+                </section>
+
                 <section>
                    <h2>Some Linux Source Spelunking</h2>
                     <hr>
@@ -311,7 +332,7 @@ int sigaction(int signum,
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>We perform the evential magic by calling <code>setup_rt_frame</code>, and
+                         <p>We perform the eventual magic by calling <code>setup_rt_frame</code>, and
                          <code>signal_setup_done</code> will commit to
                          the fact that the kernel has now "delivered" the
                          signal - it either removing it from the pending
@@ -325,7 +346,6 @@ int sigaction(int signum,
                          <p class="fragment">So lets see <code>setup_rt_frame</code></p>
                       </div>
                    </section>
-
                    <section>
                       <h3><a href="https://github.com/torvalds/linux/blob/bb5a93aaf25261321db0c499cde7da6ee9d8b164/arch/x86/entry/common.c#L359"><code>setup_rt_frame</code></a>/<a href="https://github.com/torvalds/linux/blob/f359287765c04711ff54fbd11645271d8e5ff763/arch/x86/kernel/signal.c#L438"><code>__setup_rt_frame</code></a></h3>
                       <div class="left-wide-pane">
@@ -348,6 +368,28 @@ int sigaction(int signum,
                          </div>
                       </section>
                       <section>
+                         <div class="left-wide-pane">
+                         <pre><code>
+struct rt_sigframe {
+        char __user *pretcode;
+        struct ucontext uc;
+        struct siginfo info;
+        /* fp state follows here */
+};
+                         </code></pre>
+                         </div>
+                         <div class="right-narrow-pane">
+                         <p> For completeness, let's see what that rt_sigframe looks like</p>
+
+                         <p class="reveal">"uc", "info" here are the same
+                         types as the arguments to our SA_SIGINFO-augmented
+                         handler from earlier</p>
+
+                         </div>
+                      </section>
+
+
+                      <section>
                          <p>We can now return all the way back to entry_SYSCALL_64, where we restore our now modified user_regs, and return to userland at our signal handler.</p>
                          <p class="fragment">All the state of the user
                          program that would have been restored if there had
@@ -355,6 +397,7 @@ int sigaction(int signum,
                          the thread's stack.</p>
                          <p class="fragment">When the signal handler returns, it will return to __restore_rt, where the _rt_sigreturn system call is invoked</p>
                       </section>
+
                       <section>
                          <div class="left-wide-pane">
                             <pre>

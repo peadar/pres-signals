@@ -1,0 +1,172 @@
+Reading symbols from ./full...done.
+(gdb) b signal_handler
+Breakpoint 1 at 0x95e: file full.c, line 4.
+(gdb) run
+Starting program: /home/peadar/public_html/signals/src/full 
+
+Breakpoint 1, signal_handler (signo=14, si=0x7fffffffd8b0, v=0x7fffffffd780)
+    at full.c:4
+4	   struct ucontext_t *uc = v;
+(gdb) p *si
+$1 = {
+  si_signo = 14, 
+  si_errno = 0, 
+  si_code = 128, 
+  __pad0 = 32767, 
+  _sifields = {
+    _pad = {0, 0, 0, 0, 1, 0, -140551728, 32767, 27131497, 0, -136488767, 
+      32767, -136489856, 32767, -140617108, 32767, 29, 32767, 0, 32767, 
+      -9712, 32767, 3, 32767, -9728, 32767, 0, 32767}, 
+    _kill = {
+      si_pid = 0, 
+      si_uid = 0
+    }, 
+    _timer = {
+      si_tid = 0, 
+      si_overrun = 0, 
+      si_sigval = {
+        sival_int = 0, 
+        sival_ptr = 0x0
+      }
+    }, 
+    _rt = {
+      si_pid = 0, 
+      si_uid = 0, 
+      si_sigval = {
+        sival_int = 0, 
+        sival_ptr = 0x0
+      }
+    }, 
+    _sigchld = {
+      si_pid = 0, 
+      si_uid = 0, 
+      si_status = 0, 
+      si_utime = 1, 
+      si_stime = 140737347803600
+    }, 
+    _sigfault = {
+      si_addr = 0x0, 
+      si_addr_lsb = 0, 
+      _bounds = {
+        _addr_bnd = {
+          _lower = 0x1, 
+          _upper = 0x7ffff79f59d0
+        }, 
+        _pkey = 1
+      }
+    }, 
+    _sigpoll = {
+      si_band = 0, 
+      si_fd = 0
+    }, 
+    _sigsys = {
+      _call_addr = 0x0, 
+      _syscall = 0, 
+      _arch = 0
+    }
+  }
+}
+(gdb) p *(ucontext_t *)v
+$2 = {
+  uc_flags = 7, 
+  uc_link = 0x0, 
+  uc_stack = {
+    ss_sp = 0x0, 
+    ss_flags = 0, 
+    ss_size = 0
+  }, 
+  uc_mcontext = {
+    gregs = {0, 140737351847296, 8, 582, 93824992233536, 140737488346816, 0, 
+      0, 1, 140737488346080, 140737488346592, 0, 0, -4, 140737348667732, 
+      140737488346408, 140737348667732, 582, 12103423998558259, 0, 1, 0, 0}, 
+    fpregs = 0x7fffffffd940, 
+    __reserved1 = {140737354113688, 46165800, 140737349522497, 
+      140737488345664, 140737354113408, 140733193388034, 140737351935908, 
+      140737488345504}
+  }, 
+  uc_sigmask = {
+    __val = {0, 14, 140733193388160, 0, 0, 1, 140737347803600, 27131497, 
+      140737351866561, 140737351865472, 140737347738220, 140733193388061, 
+      140733193388032, 140737488345616, 140733193388035, 140737488345600}
+  }, 
+  __fpregs_mem = {
+    cwd = 0, 
+    swd = 0, 
+    ftw = 32767, 
+    fop = 0, 
+    rip = 140737354024208, 
+    rdp = 0, 
+    mxcsr = 895, 
+    mxcr_mask = 0, 
+    _st = {{
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {8064, 0, 65535, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }, {
+        significand = {0, 0, 0, 0}, 
+        exponent = 0, 
+        __glibc_reserved1 = {0, 0, 0}
+      }}, 
+    _xmm = {{
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 1768710773, 1952997219}
+      }, {
+        element = {1932487789, 1634625385, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {16711680, 0, 791621423, 791621423}
+      }, {
+        element = {791621423, 791621423, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }, {
+        element = {0, 0, 0, 0}
+      }}, 
+    __glibc_reserved1 = {0, 0, 0, 0, 0, 0, 4158478064, 32767, 4160742600, 
+      32767, 4294957952, 32767, 4158476288, 32767, 4158478612, 32767, 
+      4158477248, 32767, 1179670611, 836, 7, 0, 832, 0}
+  }
+}
+(gdb) quit

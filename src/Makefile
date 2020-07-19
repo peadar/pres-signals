@@ -15,7 +15,9 @@ prepare_exit_to_usermode.c.html \
 setup_rt_frame.c.html \
 syscall_return_slowpath.c.html \
 basic-showrtact.gdb.out.html \
-rt_sigreturn.c.html
+rt_sigreturn.c.html \
+full.gdb.out.html \
+full.c.html
 
 all: $(TARGETS)
 
@@ -32,4 +34,4 @@ all: $(TARGETS)
 	$(CC) -o $@ $<
 
 clean:
-	rm -f $(TARGETS) *.o *.out
+	rm -f $(TARGETS) *.o *.out *.*.html
