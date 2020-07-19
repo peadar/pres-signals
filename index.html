@@ -40,9 +40,7 @@
                    </section>
 
                    <section>
-                       In that case, our application was asleep inside a
-                       system call when the signal arrived, but we don't
-                       have to be to receive the signal..
+                       We don't have to be stopped in a system call to receive the signal..
                        <pre>
                          <code class="c" data-external="src/basic-loop.c.html"> </code>
                       </pre>
@@ -72,7 +70,7 @@
                       <h3>When a signal is sent to an arbitrary
                       thread (eg, via kill(1)), then the target thread is in
                       one of a number of states</h3>
-                      <hr><div></div>
+                      <br>
 
                       <dl>
                          <dt class="fragment">Running user/application code
@@ -170,6 +168,15 @@
                              </code>
                           </pre>
                       </div>
+                      <div class="right-narrow-pane">
+                         <p>signal() is an ancient interface that is a wrapper around <code>sigaction</code>
+                         The libc function sigaction() has this prototype:
+<pre><code>
+int sigaction(int signum,
+              const struct sigaction *act,
+              struct sigaction *oldact);
+</code></pre> There used to be a sigaction syscall, but now sigaction calls the new rt_sigaction call. It's descriptor arguments are similar, but are of type <code>struct kernel_sigaction</code>. Here's what our <code>signal()</code> function eventually passed to the kernel</p>
+                      </div>
 
                    </section>
 
@@ -178,7 +185,7 @@
                    <h2>Some Linux Kernel Spelunking</h2>
 
                    <section>
-                      <h3>System call entry</h3>
+                      <h3>System call entry - <a href=https://github.com/torvalds/linux/blob/master/arch/x86/entry/common.c#L368">do_syscall_64</a></h3>
                       <div class="left-wide-pane">
                          <pre>
                              <code class="c"style="max-height:20em;"
@@ -189,13 +196,18 @@
 
                       <div class="right-narrow-pane">
                          <p>Once the <code>syscall</code> instruction is
-                         executed, the CPU transfers control to kernel code.
-                         The low-level assembler entrypoint organises to store
-                         machine state, and calls do_syscall_64 </p>
+                         executed, the CPU transfers control to kernel
+                         code.  The low-level assembler entrypoint
+                         organises to store machine state, and calls
+                         do_syscall_64 </p>
 
                          <p>That function uses the syscall number to look up a
                          table, invokes the handler for the call, then returns
                          via <code>syscall_return_slowpath</code></p>
+
+                         <p> Note that the pt_regs struct contains the
+                         registers of the usermode program - and they are
+                         passed, non-const, to do_syscall_64</p>
 
                       </div>
                    </section>
@@ -271,7 +283,12 @@
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>The magic happens here, in setup_rt_frame... </p>
+                         <p>The magic happens here, in <code>setup_rt_frame</code>.
+                         <code>signal_setup_done</code> is where we commit to
+                         the fact that the kernel has now "delivered" the
+                         signal - it either removes the signal from the pending
+                         mask, or, if setup_rt_frame failed, causes the process
+                         to segfault. So lets see <code>setup_rt_frame</code></p>
                       </div>
                    </section>
 
