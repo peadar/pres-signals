@@ -22,8 +22,6 @@
                         UNIX, so that's my justification for making this
                         a C programming presentation. Started looking
                         at this with a collegue...</aside>
-
-
                     <hr>
                     <p>
                     <br>
@@ -31,7 +29,6 @@
                             <br> Peter Edwards, Arista Networks.
                             <br><a href="mailto:peadar@arista.com">peadar@arista.com</a>
                         <br>
-
 
                         </i>
                     </p>
@@ -359,12 +356,14 @@ int sigaction(int signum,
                          </pre>
                       </div>
                       <div class="right-narrow-pane">
-                         <p>We perform the eventual magic by calling <code>setup_rt_frame</code>, and
+
+                         <p>We perform the eventual magic by
+                         calling <code>setup_rt_frame</code>, and
                          <code>signal_setup_done</code> will commit to
-                         the fact that the kernel has now "delivered" the
-                         signal - it either removing it from the pending
-                         set, or, if setup_rt_frame failed, cause the process
-                         to segfault.</p>
+                         the fact that the kernel has now "delivered"
+                         the signal - either removing it from the pending
+                         set, or, if setup_rt_frame failed, cause the
+                         process to segfault.</p>
 
                          <p class"fragment">we also store EINTR
                          in the user registers in place of the
