@@ -14,6 +14,16 @@
             <div class="slides">
                 <section>
                     <h2>The ins and outs of signal handlers</h2>
+
+                        <aside class="notes">Going to talk about signal
+                           handlers. Signals are an old part part of
+                           UNIX, back when the C language and UNIX were
+                           one are a part of
+                        UNIX, so that's my justification for making this
+                        a C programming presentation. Started looking
+                        at this with a collegue...</aside>
+
+
                     <hr>
                     <p>
                     <br>
@@ -21,8 +31,11 @@
                             <br> Peter Edwards, Arista Networks.
                             <br><a href="mailto:peadar@arista.com">peadar@arista.com</a>
                         <br>
+
+
                         </i>
                     </p>
+
                 </section>
 
                 <section>
@@ -38,6 +51,16 @@
                       <pre>
                          <code class="txt" data-external="src/basic.out.html"> </code>
                       </pre>
+
+                      <aside class="notes">This is probably the most basic
+                         example of handling signals. It uses the C standard
+                         signal() call to register a handler for SIGALRM,
+                         starts a timer, and then pauses until the signal
+                         arrives.  pause appears to return -1, and errno is set
+                         to EINTR.  This is the typical pattern for system
+                      calls that are interruptable when a signal is
+                      delivered.</aside>
+
                    </section>
 
                    <section>
@@ -52,6 +75,10 @@
                    </section>
 
                    <section>
+                      <aside class="notes">Not going to cover much about
+                      how signals get sent, really looking at how they
+                      get handled, but some basics</aside>
+
                       <p>Signals are raised when...</p>
                       <ul>
                          <li class="fragment">...some other process explicitly kill()s you (or similar)</li>
@@ -381,7 +408,7 @@ struct rt_sigframe {
                          <div class="right-narrow-pane">
                          <p> For completeness, let's see what that rt_sigframe looks like</p>
 
-                         <p class="reveal">"uc", "info" here are the same
+                         <p class="fragment">"uc", "info" here are the same
                          types as the arguments to our SA_SIGINFO-augmented
                          handler from earlier</p>
 
@@ -390,12 +417,25 @@ struct rt_sigframe {
 
 
                       <section>
-                         <p>We can now return all the way back to entry_SYSCALL_64, where we restore our now modified user_regs, and return to userland at our signal handler.</p>
+                         <p>We can now return all the way back to
+                         entry_SYSCALL_64, where we restore our now modified
+                         user_regs, and return to userland at our signal
+                         handler.</p>
+
                          <p class="fragment">All the state of the user
                          program that would have been restored if there had
                          been no signal pending, is sitting at the top of
-                         the thread's stack.</p>
-                         <p class="fragment">When the signal handler returns, it will return to __restore_rt, where the _rt_sigreturn system call is invoked</p>
+                         the thread's user mode stack.</p>
+                         <p class="fragment">That state is the only state
+                         maintained to indicate you are entering a signal
+                         handler, and it is totally modifiable by the user mode
+                         program. From the kernel's perspective, it is now just
+                         returning back to your program as normal</p>
+
+                         <p class="fragment">When the signal handler function
+                         returns, it will return into __restore_rt, where the
+                         _rt_sigreturn system call is invoked</p>
+
                       </section>
 
                       <section>

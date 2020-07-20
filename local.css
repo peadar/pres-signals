@@ -27,9 +27,13 @@ div.right-narrow-pane {
 }
 
 
+.reveal {
+   font-size: 2em;
+}
+
 .reveal pre code {
     max-height: 25em;
-    font-size:18pt;
+    font-size:1.6em;
     line-height: 1.2em;
     margin-left: 0;
     margin-right: 0;
