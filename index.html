@@ -15,13 +15,6 @@
                 <section>
                     <h2>The ins and outs of signal handlers</h2>
 
-                        <aside class="notes">Going to talk about signal
-                           handlers. Signals are an old part part of
-                           UNIX, back when the C language and UNIX were
-                           one are a part of
-                        UNIX, so that's my justification for making this
-                        a C programming presentation. Started looking
-                        at this with a collegue...</aside>
                     <hr>
                     <p>
                     <br>
@@ -49,15 +42,6 @@
                          <code class="txt" data-external="src/basic.out.html"> </code>
                       </pre>
 
-                      <aside class="notes">This is probably the most basic
-                         example of handling signals. It uses the C standard
-                         signal() call to register a handler for SIGALRM,
-                         starts a timer, and then pauses until the signal
-                         arrives.  pause appears to return -1, and errno is set
-                         to EINTR.  This is the typical pattern for system
-                      calls that are interruptable when a signal is
-                      delivered.</aside>
-
                    </section>
 
                    <section>
@@ -72,9 +56,6 @@
                    </section>
 
                    <section>
-                      <aside class="notes">Not going to cover much about
-                      how signals get sent, really looking at how they
-                      get handled, but some basics</aside>
 
                       <p>Signals are raised when...</p>
                       <ul>
@@ -469,6 +450,29 @@ struct rt_sigframe {
                          </div>
                       </section>
 
+                </section>
+
+                <section>
+                    <h2>TL;DR:</h2>
+                    <ul>
+                       <li class="fragment">Signal handlers are invoked
+                       when the kernel returns back to userland.</li>
+
+                       <li class="fragment">If a system call is
+                       interrupted by a signal, the signal handler is
+                       invoked as the system call exits.</li>
+
+                       <li class="fragment">While the signal handler is
+                       being invoked, all the state required to restore
+                       control to your program is on the thread's user
+                       stack</li>
+
+                       <li class="fragment">It is __rt_sigreturn that
+                       actually returns -1/EINTR to your program, after
+                       restoring the state saved there by the kernel
+                       in setup_rt_frame</li>
+
+                    </ul>
                 </section>
 
                 <section>
